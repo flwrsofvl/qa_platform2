@@ -1,0 +1,47 @@
+{% extends 'qa/base.html' %}
+
+{% block content %}
+    <div class="question">
+        <h2>{{ question.title }}</h2>
+        <p>{{ question.content }}</p>
+        <div class="tags">
+            {% for tag in question.tags.all %}
+                <span class="tag">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+        <small>Автор: {{ question.author.username }} | {{ question.created_at }}</small>
+    </div>
+    
+    <h3>Ответы ({{ answers.count }})</h3>
+    
+    {% for answer in answers %}
+        <div class="answer">
+            <p>{{ answer.content }}</p>
+            <div class="rating">Рейтинг: {{ answer.rating }}</div>
+            <small>Автор: {{ answer.author.username }} | {{ answer.created_at }}</small>
+            
+            {% if user.is_authenticated %}
+                <div class="rating-buttons">
+                    Оцените ответ:
+                    {% for i in "12345" %}
+                        <form action="{% url 'rate_answer' answer.id forloop.counter %}" method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="rating-btn">{{ forloop.counter }} ★</button>
+                        </form>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    
+    {% if user.is_authenticated %}
+        <h3>Ваш ответ</h3>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn">Отправить ответ</button>
+        </form>
+    {% else %}
+        <p><a href="{% url 'admin:login' %}">Войдите</a>, чтобы оставить ответ.</p>
+    {% endif %}
+{% endblock %}

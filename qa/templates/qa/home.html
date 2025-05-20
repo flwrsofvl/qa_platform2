@@ -1,0 +1,18 @@
+{% extends 'qa/base.html' %}
+
+{% block content %}
+    <h1>Последние вопросы</h1>
+    
+    {% for question in questions %}
+        <div class="question">
+            <h3><a href="{% url 'question_detail' question.id %}">{{ question.title }}</a></h3>
+            <p>{{ question.content|truncatewords:30 }}</p>
+            <div class="tags">
+                {% for tag in question.tags.all %}
+                    <span class="tag">{{ tag.name }}</span>
+                {% endfor %}
+            </div>
+            <small>Автор: {{ question.author.username }} | {{ question.created_at }}</small>
+        </div>
+    {% endfor %}
+{% endblock %}

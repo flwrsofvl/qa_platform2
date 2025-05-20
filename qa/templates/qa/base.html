@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Q&A Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .question, .answer {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .rating-buttons {
+            margin-top: 10px;
+        }
+        .rating-btn {
+            padding: 3px 8px;
+            margin-right: 5px;
+            background: #f1c40f;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="{% url 'home' %}" class="btn">Главная</a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'ask_question' %}" class="btn">Задать вопрос</a>
+                <span style="float: right;">
+                    Привет, {{ user.username }}! 
+                    <a href="{% url 'admin:logout' %}" class="btn">Выйти</a>
+                </span>
+            {% else %}
+                <span style="float: right;">
+                    <a href="{% url 'admin:login' %}" class="btn">Войти</a>
+                </span>
+            {% endif %}
+        </div>
+    </header>
+    
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
