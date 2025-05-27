@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Q&A Platform</title>
     <style>
         body {
@@ -60,11 +62,12 @@
                 <a href="{% url 'ask_question' %}" class="btn">Задать вопрос</a>
                 <span style="float: right;">
                     Привет, {{ user.username }}! 
-                    <a href="{% url 'admin:logout' %}" class="btn">Выйти</a>
+                    <a href="{% url 'logout' %}" class="btn">Выйти</a>
                 </span>
             {% else %}
                 <span style="float: right;">
-                    <a href="{% url 'admin:login' %}" class="btn">Войти</a>
+                    <a href="{% url 'login' %}" class="btn">Войти</a>
+                    <a href="{% url 'register' %}" class="btn">Регистрация</a>
                 </span>
             {% endif %}
         </div>

@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth import login, authenticate
 from .models import Question, Answer, Tag
-from .forms import QuestionForm, AnswerForm
+from .forms import QuestionForm, AnswerForm, CustomUserCreationForm, CustomAuthenticationForm
 
 def home(request):
     questions = Question.objects.all().order_by('-created_at')
@@ -57,3 +58,35 @@ def rate_answer(request, answer_id, rating):
         answer.rating = rating
         answer.save()
     return redirect('question_detail', question_id=answer.question.id)
+
+def register(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')
+            user = authenticate(username=username, password=password)
+            login(request, user)
+            return redirect('home')
+    else:
+        form = CustomUserCreationForm()
+    
+    return render(request, 'qa/register.html', {'form': form})
+
+def login_view(request):
+    if request.method == 'POST':
+        form = CustomAuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = CustomAuthenticationForm()
+    
+    return render(request, 'qa/login.html', {'form': form})
+
+def logout_view(request):
+    from django.contrib.auth import logout
+    logout(request)
+    return redirect('home')
