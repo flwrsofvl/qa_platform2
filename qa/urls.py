@@ -1,6 +1,8 @@
 from django.urls import path
 from qa import views 
 
+app_name = 'qa'
+
 urlpatterns = [
     path('', views.home, name='home'),
     path('question/<int:question_id>/', views.question_detail, name='question_detail'),

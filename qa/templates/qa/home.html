@@ -1,18 +1,89 @@
 {% extends 'qa/base.html' %}
 
+{% block title %}Questions{% endblock %}
+
 {% block content %}
-    <h1>Последние вопросы</h1>
-    
-    {% for question in questions %}
-        <div class="question">
-            <h3><a href="{% url 'question_detail' question.id %}">{{ question.title }}</a></h3>
-            <p>{{ question.content|truncatewords:30 }}</p>
-            <div class="tags">
-                {% for tag in question.tags.all %}
-                    <span class="tag">{{ tag.name }}</span>
-                {% endfor %}
-            </div>
-            <small>Автор: {{ question.author.username }} | {{ question.created_at }}</small>
+    <h2 class="mb-4">Все вопросы</h2>
+
+    <div class="card card-body mb-4">
+        <h5 class="card-title">Фильтрация вопросов</h5>
+        <div class="mb-3">
+            <strong>По тегу:</strong>
+            <a href="{% url 'qa:home' %}{% if current_search_query %}{% comment %} Поиск теперь в навигации, поэтому не нужно добавлять q= сюда {% endcomment %}{% endif %}{% if current_author_query %}{% if not current_search_query %}{% comment %} Тут тоже q= не нужно, но на всякий случай оставим логику для author {% endcomment %}{% else %}&{% endif %}author={{ current_author_query }}{% endif %}"
+               class="btn btn-sm {% if not current_tag_slug %}btn-primary{% else %}btn-outline-primary{% endif %} mx-1 mb-1">Все</a>
+            {% for tag in tags %}
+                <a href="{% url 'qa:home' %}?tag={{ tag.slug }}{% if current_search_query %}&q={{ current_search_query }}{% endif %}{% if current_author_query %}&author={{ current_author_query }}{% endif %}"
+                   class="btn btn-sm {% if tag.slug == current_tag_slug %}btn-primary{% else %}btn-outline-primary{% endif %} mx-1 mb-1">
+                    {{ tag.name }}
+                </a>
+            {% endfor %}
         </div>
-    {% endfor %}
+
+        {# Если вы все-таки хотите оставить поиск по автору отдельно от навигации, можно вернуть этот блок: #}
+        <div class="mt-3">
+            <strong>По автору:</strong>
+            <form action="{% url 'qa:home' %}" method="get" class="form-inline d-inline-flex w-auto">
+                <div class="input-group">
+                    <input type="text" name="author" class="form-control" placeholder="Имя автора..." value="{{ current_author_query }}">
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">Найти</button>
+                        {% if current_author_query %}
+                            <a href="{% url 'qa:home' %}{% if current_search_query %}{% comment %} Здесь q= не нужно {% endcomment %}{% endif %}{% if current_tag_slug %}{% if not current_search_query %}{% if not current_author_query %}?{% else %}&{% endif %}{% else %}&{% endif %}tag={{ current_tag_slug }}{% endif %}" class="btn btn-outline-secondary">Очистить</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    {% if questions %}
+        <ul class="list-group">
+            {% for question in questions %}
+                <li class="list-group-item mb-3">
+                    <h5 class="mb-1">
+                        <a href="{% url 'qa:question_detail' question.pk %}">{{ question.title }}</a>
+                    </h5>
+                    <p class="mb-1 text-muted">Задано: {{ question.author.username }} {{ question.created_at|date:"d M, Y H:i" }}</p>
+                    {% if question.tags.all %}
+                        <p class="mb-1 small">
+                            Теги:
+                            {% for tag in question.tags.all %}
+                                <span class="badge badge-info">{{ tag.name }}</span>
+                            {% endfor %}
+                        </p>
+                    {% endif %}
+                    <p>{{ question.content|truncatechars:150 }}</p>
+                    <a href="{% url 'qa:question_detail' question.pk %}" class="btn btn-sm btn-info">Читать далее</a>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_search_query %}&q={{ current_search_query }}{% endif %}{% if current_author_query %}&author={{ current_author_query }}{% endif %}{% if current_tag_slug %}&tag={{ current_tag_slug }}{% endif %}">&laquo;</a>
+                    </li>
+                {% endif %}
+                {% for i in page_obj.paginator.page_range %}
+                    {% if page_obj.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if current_search_query %}&q={{ current_search_query }}{% endif %}{% if current_author_query %}&author={{ current_author_query }}{% endif %}{% if current_tag_slug %}&tag={{ current_tag_slug }}{% endif %}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_search_query %}&q={{ current_search_query }}{% endif %}{% if current_author_query %}&author={{ current_author_query }}{% endif %}{% if current_tag_slug %}&tag={{ current_tag_slug }}{% endif %}">&raquo;</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+    {% else %}
+        <p>Вопросов не найдено.</p>
+    {% endif %}
 {% endblock %}
