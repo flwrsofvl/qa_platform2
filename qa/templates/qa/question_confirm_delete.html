@@ -1,0 +1,15 @@
+{# qa_platform2/qa/templates/qa/question_confirm_delete.html #}
+{% extends 'qa/base.html' %}
+
+{% block content %}
+    <div class="container my-4">
+        <h2 class="mb-4">Удаление вопроса</h2>
+        <p class="lead">Вы уверены, что хотите удалить вопрос: **"{{ question.title }}"**?</p>
+
+        <form method="post">
+            {% csrf_token %} {# Защита от CSRF-атак - ОБЯЗАТЕЛЬНО! #}
+            <button type="submit" class="btn btn-danger me-2">Удалить</button>
+            <a href="{% url 'qa:question_detail' question_id=question.id %}" class="btn btn-secondary">Отмена</a> {# Ссылка для отмены #}
+        </form>
+    </div>
+{% endblock content %}

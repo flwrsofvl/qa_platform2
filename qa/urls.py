@@ -1,5 +1,5 @@
 from django.urls import path
-from qa import views 
+from qa import views
 
 app_name = 'qa'
 
@@ -11,4 +11,5 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('question/<int:pk>/delete/', views.QuestionDeleteView.as_view(), name='question_delete'),
 ]

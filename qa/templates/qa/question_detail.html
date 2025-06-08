@@ -10,16 +10,23 @@
             {% endfor %}
         </div>
         <small>Автор: {{ question.author.username }} | {{ question.created_at }}</small>
+
+        {% if request.user.is_authenticated and request.user == question.author %}
+            <div style="margin-top: 15px;">
+                <a href="{% url 'qa:question_delete' pk=question.id %}" class="btn btn-danger btn-sm">Удалить вопрос</a>
+            </div>
+        {% endif %}
+
     </div>
-    
+
     <h3>Ответы ({{ answers.count }})</h3>
-    
+
     {% for answer in answers %}
         <div class="answer">
             <p>{{ answer.content }}</p>
             <div class="rating">Рейтинг: {{ answer.rating }}</div>
             <small>Автор: {{ answer.author.username }} | {{ answer.created_at }}</small>
-            
+
             {% if user.is_authenticated %}
                 <div class="rating-buttons">
                     Оцените ответ:
@@ -33,7 +40,7 @@
             {% endif %}
         </div>
     {% endfor %}
-    
+
     {% if user.is_authenticated %}
         <h3>Ваш ответ</h3>
         <form method="post">

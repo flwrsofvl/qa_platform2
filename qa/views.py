@@ -1,37 +1,35 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import login, authenticate, logout # Добавил logout для ясности
+from django.contrib.auth import login, authenticate, logout
 from django.db.models import Q
 from django.contrib.auth.models import User
 from .models import Question, Answer, Tag
 from .forms import QuestionForm, AnswerForm, CustomUserCreationForm, CustomAuthenticationForm
 from django.core.paginator import Paginator
-from django.utils.text import slugify # ДОБАВЛЕНО: Импорт slugify
+from django.utils.text import slugify
+from django.views.generic import DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin 
 
 def home(request):
     questions = Question.objects.all().order_by('-created_at')
 
-    # Поиск по названию вопроса
     search_query = request.GET.get('q')
     if search_query:
         questions = questions.filter(title__icontains=search_query)
 
-    # Поиск по авторам
     author_query = request.GET.get('author')
     if author_query:
         questions = questions.filter(author__username__icontains=author_query)
 
-    # Фильтрация по тегам
     tag_slug = request.GET.get('tag')
     if tag_slug:
         questions = questions.filter(tags__slug=tag_slug)
 
-    # Пагинация
-    paginator = Paginator(questions, 10) # 10 вопросов на страницу
+    paginator = Paginator(questions, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # Получаем все теги для отображения в фильтре
     all_tags = Tag.objects.all().order_by('name')
 
     return render(request, 'qa/home.html', {
@@ -54,7 +52,6 @@ def question_detail(request, question_id):
             answer.question = question
             answer.author = request.user
             answer.save()
-            # ИЗМЕНЕНО: Добавлено пространство имен 'qa:'
             return redirect('qa:question_detail', question_id=question.id)
     else:
         form = AnswerForm()
@@ -77,13 +74,11 @@ def ask_question(request):
             tags = form.cleaned_data['tags'].split(',')
             for tag_name in tags:
                 tag_name = tag_name.strip()
-                if tag_name: # Убедимся, что имя тега не пустое
-                    # Убедимся, что slug не будет пустым
+                if tag_name:
                     if slugify(tag_name):
                         tag, created = Tag.objects.get_or_create(name=tag_name)
                         question.tags.add(tag)
 
-            # ИЗМЕНЕНО: Добавлено пространство имен 'qa:'
             return redirect('qa:question_detail', question_id=question.id)
     else:
         form = QuestionForm()
@@ -96,7 +91,6 @@ def rate_answer(request, answer_id, rating):
     if 1 <= rating <= 5:
         answer.rating = rating
         answer.save()
-    # ИЗМЕНЕНО: Добавлено пространство имен 'qa:'
     return redirect('qa:question_detail', question_id=answer.question.id)
 
 def register(request):
@@ -108,7 +102,6 @@ def register(request):
             password = form.cleaned_data.get('password1')
             user = authenticate(username=username, password=password)
             login(request, user)
-            # ИЗМЕНЕНО: Добавлено пространство имен 'qa:'
             return redirect('qa:home')
     else:
         form = CustomUserCreationForm()
@@ -129,5 +122,16 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    # ИЗМЕНЕНО: Добавлено пространство имен 'qa:'
     return redirect('qa:home')
+
+class QuestionDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Question
+    template_name = 'qa/question_confirm_delete.html' 
+    success_url = reverse_lazy('qa:home')
+
+    def test_func(self):
+        question = self.get_object()
+        return self.request.user == question.author
+
+    def handle_no_permission(self):
+        return redirect('qa:question_detail', question_id=self.get_object().pk)
